@@ -1,7 +1,21 @@
-source /miniconda/etc/profile.d/conda.sh
-conda init bash
+#!/usr/bin/bash -x
+#SBATCH -p gpu_4
+#SBATCH --job=CORE
+#SBATCH --nodes=1
+#SBATCH -c 4
+#SBTACH --ntasks=1
+#SBATCH --time=24:00:00
+#SBATCH --output=output_file.out
+#SBATCH --error=output_file.out
+#SBATCH --mem=150gb
+#SBATCH --gres gpu:1
+
+
+
+cd $HOME/ml-core
+source ~/.bashrc
 conda activate core
+
 export PYTHONPATH=.:$PYTHONPATH
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/root/.mujoco/mujoco210/bin:/usr/lib/nvidia-000
-tensorboard --logdir ${BOLT_ARTIFACT_DIR} --bind_all --port ${TENSORBOARD_PORT} &
-MUJOCO_GL=egl CUDA_VISIBLE_DEVICES=0 python train.py
+
+MUJOCO_GL=egl CUDA_VISIBLE_DEVICES=0 python train.py --config configs/dmc/core.yaml

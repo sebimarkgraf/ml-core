@@ -20,6 +20,9 @@ from utils import write_video_mp4, torchify, add_weight_decay, generate_expt_id,
 from environments import make_environment
 from copy import deepcopy
 import sys
+import wandb
+
+wandb.init(project="ml-core", sync_tensorboard=True)
 
 
 class Trainer(object):

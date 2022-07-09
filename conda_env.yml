@@ -27,3 +27,4 @@ dependencies:
     - dm_control
     - git+ssh://git@github.com/sebimarkgraf/occluded_dmc.git
     - imageio-ffmpeg
+    - wandb

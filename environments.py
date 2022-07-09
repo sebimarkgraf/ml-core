@@ -15,5 +15,8 @@ def make_environment(config, train=True, seed=None):
     elif env_name == 'dcs_dmc_paired':
         from environment_container_dcs import EnvironmentContainerDCS_DMC_paired
         return EnvironmentContainerDCS_DMC_paired(config, train=train, seed=seed)
+    elif env_name == 'occluded_dmc':
+        from environment_container_dmc import EnvironmentContainerDMC
+        return EnvironmentContainerDMC(config, train=train, seed=seed)
     else:
         raise ValueError

@@ -25,3 +25,5 @@ dependencies:
   - pip:
     - termcolor==1.1.0
     - dm_control
+    - git+ssh://git@github.com/sebimarkgraf/occluded_dmc.git
+    - imageio-ffmpeg

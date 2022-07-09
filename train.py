@@ -621,6 +621,7 @@ class Trainer(object):
         q_loss = -q.mean()
         entropy_loss = policy_action_log_probs.mean()
         entropy_loss_wt = torch.exp(self.log_alpha).detach()
+
         actor_loss = q_loss + entropy_loss_wt * entropy_loss
         self.optimizer_actor.zero_grad()
         actor_loss.backward()
@@ -704,6 +705,7 @@ class Trainer(object):
                                                                   sample_policy=True)
                 if not self.debug and self.tb_writer is not None:
                     self.tb_writer.add_scalar('rl_metrics/episode_reward', episode_reward, ii)
+                    self.tb_writer.add_scalar('rl_metrics/env_steps', len(replay_buffer), ii)
 
             if ii < initial_episodes_per_env:  # No updates until a few episodes have been collected.
                 continue

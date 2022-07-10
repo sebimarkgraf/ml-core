@@ -674,6 +674,7 @@ class Trainer(object):
         steps_per_episode = self.config['episode_steps'] // self.action_repeat
         replay_buffer_size = self.config['replay_buffer_size']
         num_episodes_in_replay_buffer = replay_buffer_size // steps_per_episode
+        print(steps_per_episode, num_episodes_in_replay_buffer)
         replay_buffer = SequenceReplayBuffer(size=num_episodes_in_replay_buffer)
 
         # Find out how many data collection iterations to do use.
@@ -687,6 +688,7 @@ class Trainer(object):
         B = self.config['batch_size']
         T = self.config['dynamics_seq_len']
         train_step = 0
+        episodes = 0
 
         # Initial data collection.
         initial_episodes_per_env = self.config['initial_data_steps'] // (self.num_envs * steps_per_episode)  # Used to delay both world model and rl training.
@@ -706,9 +708,11 @@ class Trainer(object):
                 else:
                     episode_reward = self.collect_data_from_actor(replay_buffer, num_episodes_per_env=1, train=True,
                                                                   sample_policy=True)
+
+                episodes += 1
                 if not self.debug and self.tb_writer is not None:
                     self.tb_writer.add_scalar('rl_metrics/episode_reward', episode_reward, ii)
-                    self.tb_writer.add_scalar('rl_metrics/env_steps', len(replay_buffer), ii)
+                    self.tb_writer.add_scalar('episodes', episodes * self.config['num_envs'], ii)
 
             if ii < initial_episodes_per_env:  # No updates until a few episodes have been collected.
                 continue

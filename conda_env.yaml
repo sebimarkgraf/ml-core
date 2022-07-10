@@ -28,3 +28,4 @@ dependencies:
     - git+ssh://git@github.com/sebimarkgraf/occluded_dmc.git
     - imageio-ffmpeg
     - wandb
+    - setuptools==59.5.0

@@ -762,8 +762,12 @@ def argument_parser(argument):
 
 @hydra.main(version_base="1.1", config_path="./configs", config_name="dmc")
 def main(cfg):
-    wandb.init(project="ml-core", sync_tensorboard=True)
     config = omegaconf.OmegaConf.to_container(cfg, resolve=True, throw_on_missing=True)
+
+    # Wandb Setup
+    group = f"{cfg.env.domain}-{cfg.env.distractor}"
+    name = f"{group}-{cfg.seed}"
+    wandb.init(project="ml-core", sync_tensorboard=True, group=group, name=name, config=config)
 
     if torch.cuda.is_available():
         device = torch.device('cuda')
@@ -773,7 +777,6 @@ def main(cfg):
         print('Running on CPU')
 
 
-    config = config['parameters']
     config['expt_id'] = generate_expt_id()
     seed = config['seed']
     random.seed(seed)

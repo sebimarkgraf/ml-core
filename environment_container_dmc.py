@@ -7,6 +7,7 @@
 import numpy as np
 
 import distractor_dmc2gym as dmc  # noqa: E402
+from gym.wrappers import StepAPICompatibility
 
 from collections import deque
 from PIL import Image
@@ -52,7 +53,6 @@ class EnvironmentContainerDMC(object):
             from_pixels=True,
             height=config['image_height'],
             width=config['image_width'],
-            seed=seed,
             distraction_source=distractor,
             distraction_location=occlusion_location,
             visualize_reward=False,
@@ -60,7 +60,7 @@ class EnvironmentContainerDMC(object):
             train_or_val='train' if train else 'val',
             background_dataset_path=self.background_dataset_path,
         )
-
+        self.env = StepAPICompatibility(self.env, output_truncation_bool=False)
         action_spec = self.env.action_spec()
         self.action_dims = len(action_spec.minimum)
         self.action_low = action_spec.minimum
@@ -89,7 +89,7 @@ class EnvironmentContainerDMC(object):
         return self.other_dims
 
     def reset(self):
-        obs = self.env.reset()
+        obs, info = self.env.reset()
         if self.num_frames_to_stack > 1:
             self.frame_queue.clear()
 

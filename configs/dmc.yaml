@@ -3,7 +3,7 @@ parameters:
   env:
     name: occluded_dmc
     domain: cheetah
-    distractor: dots
+    distractor: dots_pendulum
     difficulty: hard
     dynamic: true
     background_dataset_path: background-datasets

@@ -29,3 +29,5 @@ dependencies:
     - imageio-ffmpeg
     - wandb
     - setuptools==59.5.0
+    - hydra-core>=1.1.2
+    - hydra-submitit-launcher>=1.1.6

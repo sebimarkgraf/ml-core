@@ -19,15 +19,14 @@ import random
 from utils import write_video_mp4, torchify, add_weight_decay, generate_expt_id, crop_image_tensor, get_parameter_list
 from environments import make_environment
 from copy import deepcopy
-import sys
 import wandb
-
-wandb.init(project="ml-core", sync_tensorboard=True)
+import hydra
+import omegaconf
 
 
 class Trainer(object):
     """ Trainer for all models. """
-    def __init__(self, config, device, debug):
+    def __init__(self, config: dict, device: torch.device, debug: bool = False):
         self.config = config
         self.device = device
         self.debug = debug
@@ -729,13 +728,13 @@ class Trainer(object):
                 batch = self.prep_batch(batch, random_crop=random_crop)
                 tic1 = time.time()
                 if not self.exclude_wm_loss:  # Skip for model-free variants, like SAC, RSAC.
-                    self.update_world_model(batch, train_step, heavy_logging=(i == 0))
+                    self.update_world_model(batch, train_step, heavy_logging=False)
                 tic2 = time.time()
                 if self.has_momentum_encoder:
-                    self.update_curl(batch, train_step, heavy_logging=(i == 0))
+                    self.update_curl(batch, train_step, heavy_logging=False)
                 tic3 = time.time()
                 if train_step >= start_rl_training_after:
-                    self.update_actor_critic_sac(batch, train_step, heavy_logging=(i == 0))
+                    self.update_actor_critic_sac(batch, train_step, heavy_logging=False)
                 toc = time.time()
                 timing_metrics = {
                     'time_data_prep': tic1 - tic,
@@ -761,22 +760,18 @@ def argument_parser(argument):
     return args
 
 
-def main():
-    args = argument_parser(None)
-    if not args.disable_cuda and torch.cuda.is_available():
+@hydra.main(version_base="1.1", config_path="./configs", config_name="dmc")
+def main(cfg):
+    wandb.init(project="ml-core", sync_tensorboard=True)
+    config = omegaconf.OmegaConf.to_container(cfg, resolve=True, throw_on_missing=True)
+
+    if torch.cuda.is_available():
         device = torch.device('cuda')
         print('Running on GPU {}'.format(torch.cuda.get_device_name(0)))
     else:
         device = torch.device('cpu')
         print('Running on CPU')
 
-    try:
-       with open(args.config) as f:
-            config = yaml.safe_load(f)
-    except FileNotFoundError:
-        print("Error opening specified config yaml at: {}. "
-              "Please check filepath and try again.".format(args.config))
-        sys.exit(1)
 
     config = config['parameters']
     config['expt_id'] = generate_expt_id()
@@ -785,7 +780,7 @@ def main():
     np.random.seed(seed)
     torch.manual_seed(seed)
 
-    trainer = Trainer(config, device, args.debug)
+    trainer = Trainer(config, device)
     trainer.train()
 
 

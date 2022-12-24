@@ -455,7 +455,6 @@ class Trainer(object):
                 obs_recon_prior = self.unnormalize(outputs['obs_recon_prior']).transpose(0, 1)
                 obs_recon_imagined = self.unnormalize(obs_recon_imagined).transpose(0, 1)
                 obs = torch.cat([obs, obs_recon, obs_recon_post, obs_recon_prior, obs_recon_imagined], dim=3)
-            self.log_video('obs/val', obs, step)
         return -episode_reward
 
     def collect_data_random_policy(self, replay_buffer, num_episodes_per_env=1, train=True):
@@ -698,7 +697,6 @@ class Trainer(object):
                 loss = self.validate(ii)
                 if ii == 0:
                     print('Completed validation')
-                self.save(ii, loss)
 
             # Collect data. One episode in each environment.
             with torch.no_grad():
@@ -722,30 +720,15 @@ class Trainer(object):
             self.critic.train()
             for i in range(num_updates_per_iter):
                 # Train world model.
-                tic = time.time()
                 train_step += 1
                 batch = replay_buffer.sample(B, T)  # Dict of (B, T, ..)
                 batch = self.prep_batch(batch, random_crop=random_crop)
-                tic1 = time.time()
                 if not self.exclude_wm_loss:  # Skip for model-free variants, like SAC, RSAC.
                     self.update_world_model(batch, train_step, heavy_logging=False)
-                tic2 = time.time()
                 if self.has_momentum_encoder:
                     self.update_curl(batch, train_step, heavy_logging=False)
-                tic3 = time.time()
                 if train_step >= start_rl_training_after:
                     self.update_actor_critic_sac(batch, train_step, heavy_logging=False)
-                toc = time.time()
-                timing_metrics = {
-                    'time_data_prep': tic1 - tic,
-                    'time_wm_update': tic2 - tic1,
-                    'time_curl_update': tic3 - tic2,
-                    'time_ac_update': toc - tic3,
-                    'time_per_update': toc - tic,
-                }
-                if not self.debug and self.tb_writer is not None:
-                    for k, v in timing_metrics.items():
-                        self.tb_writer.add_scalar('timing_metrics/{}'.format(k), v, train_step)
                 if train_step == 1:
                     print('Completed one step')
 
